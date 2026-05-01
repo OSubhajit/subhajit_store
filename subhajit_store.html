@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Subhajit Sarkar — Book Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #0a0806;
+    --deep: #111009;
+    --card: #16130e;
+    --border: #2a2318;
+    --gold: #c9a84c;
+    --gold2: #e8c97a;
+    --cream: #f0e6cc;
+    --muted: #8a7a5a;
+    --text: #d4c4a0;
+    --white: #f5ede0;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'EB Garamond', serif;
+    font-size: 16px;
+    line-height: 1.7;
+    cursor: default;
+    overflow-x: hidden;
+  }
+
+  /* ── noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ── header ── */
+  header {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(10,8,6,0.98), transparent);
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+  }
+
+  .logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  nav { display: flex; gap: 32px; }
+  nav a {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  nav a:hover { color: var(--gold); }
+
+  /* ── hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 40%, rgba(201,168,76,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(139,115,69,0.05) 0%, transparent 60%);
+  }
+
+  .hero-ornament {
+    font-size: 1rem;
+    letter-spacing: 0.5em;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 24px;
+    animation: fadeUp 1s ease both;
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+    animation: fadeUp 1s 0.1s ease both;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-bottom: 48px;
+    animation: fadeUp 1s 0.2s ease both;
+  }
+
+  .hero-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 48px;
+    animation: fadeUp 1s 0.3s ease both;
+  }
+  .hero-divider::before, .hero-divider::after {
+    content: '';
+    flex: 1; max-width: 120px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .hero-divider span { color: var(--gold); font-size: 1.2rem; }
+
+  .btn-primary {
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border: none;
+    padding: 14px 40px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    animation: fadeUp 1s 0.4s ease both;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(201,168,76,0.35);
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 32px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--muted); font-size: 0.7rem; letter-spacing: 0.2em;
+    text-transform: uppercase; animation: bob 2s infinite;
+  }
+  .scroll-hint::after {
+    content: '';
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+  }
+
+  @keyframes bob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── section ── */
+  section { padding: 100px 24px; }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 300;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .section-rule {
+    width: 60px; height: 1px;
+    background: var(--gold);
+    margin: 0 auto 60px;
+    opacity: 0.6;
+  }
+
+  /* ── books grid ── */
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .book-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 0;
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .book-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(201,168,76,0.04), transparent);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .book-card:hover::before { opacity: 1; }
+  .book-card:hover {
+    border-color: rgba(201,168,76,0.4);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.15);
+  }
+
+  .book-cover {
+    width: 100%; aspect-ratio: 1/1;
+    object-fit: cover;
+    display: block;
+    filter: sepia(10%) brightness(0.9);
+    transition: filter 0.4s;
+  }
+  .book-card:hover .book-cover { filter: sepia(5%) brightness(1); }
+
+  .book-cover-placeholder {
+    width: 100%; aspect-ratio: 1/1;
+    background: linear-gradient(135deg, #1c170f, #2a2215);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px;
+  }
+  .book-cover-placeholder .ph-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-weight: 600;
+    color: var(--gold); text-align: center;
+    padding: 0 20px; line-height: 1.3;
+  }
+  .book-cover-placeholder .ph-icon { font-size: 2.5rem; opacity: 0.3; }
+
+  .book-info { padding: 24px; }
+
+  .book-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--gold);
+    opacity: 0.7; margin-bottom: 8px;
+    display: block;
+  }
+
+  .book-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 600;
+    color: var(--white); line-height: 1.3;
+    margin-bottom: 6px;
+  }
+
+  .book-author {
+    font-family: 'EB Garamond', serif;
+    font-style: italic; font-size: 0.85rem;
+    color: var(--muted); margin-bottom: 12px;
+  }
+
+  .book-desc {
+    font-size: 0.88rem; color: var(--muted);
+    line-height: 1.6; margin-bottom: 20px;
+  }
+
+  .book-footer {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+
+  .book-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600;
+    color: var(--gold);
+  }
+  .book-price span { font-size: 0.8rem; color: var(--muted); }
+
+  .btn-buy {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    border: none; padding: 10px 20px;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .btn-buy:hover {
+    box-shadow: 0 4px 20px rgba(201,168,76,0.4);
+    transform: translateY(-1px);
+  }
+
+  .badge-new {
+    position: absolute; top: 14px; right: 14px;
+    background: var(--gold);
+    color: var(--black);
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem; letter-spacing: 0.2em;
+    padding: 4px 10px; text-transform: uppercase;
+  }
+
+  .badge-soon {
+    position: absolute; top: 14px; right: 14px;
+    background: transparent;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem; letter-spacing: 0.2em;
+    padding: 4px 10px; text-transform: uppercase;
+  }
+
+  /* ── about ── */
+  .about-inner {
+    max-width: 700px; margin: 0 auto;
+    text-align: center;
+  }
+  .about-inner p {
+    font-size: 1.05rem; line-height: 1.9;
+    color: var(--text); margin-bottom: 20px;
+  }
+  .about-inner p em { color: var(--gold); font-style: italic; }
+
+  .about-sig {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem; font-style: italic;
+    color: var(--gold); margin-top: 32px;
+  }
+
+  /* ── modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(5,4,3,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid rgba(201,168,76,0.25);
+    max-width: 440px; width: 100%;
+    padding: 40px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-close {
+    position: absolute; top: 16px; right: 20px;
+    background: none; border: none;
+    color: var(--muted); font-size: 1.4rem;
+    cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--gold); }
+
+  .modal-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem; letter-spacing: 0.35em;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem; font-weight: 600;
+    color: var(--white); line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .modal-author {
+    font-style: italic; color: var(--muted);
+    font-size: 0.9rem; margin-bottom: 24px;
+  }
+
+  .modal-price-row {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 24px;
+  }
+  .modal-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 600; color: var(--gold);
+  }
+  .modal-price-note { font-size: 0.8rem; color: var(--muted); }
+
+  .modal-divider {
+    height: 1px; background: var(--border); margin: 24px 0;
+  }
+
+  .qr-section { text-align: center; }
+
+  .qr-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem; letter-spacing: 0.25em;
+    color: var(--muted); text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .qr-box {
+    width: 180px; height: 180px;
+    margin: 0 auto 16px;
+    background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    padding: 12px;
+  }
+
+  .qr-box svg { width: 100%; height: 100%; }
+
+  .upi-id {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem; color: var(--gold);
+    letter-spacing: 0.05em; margin-bottom: 6px;
+  }
+
+  .upi-note {
+    font-size: 0.8rem; color: var(--muted);
+    font-style: italic; margin-bottom: 20px;
+  }
+
+  .modal-steps {
+    background: rgba(201,168,76,0.04);
+    border: 1px solid rgba(201,168,76,0.1);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .modal-steps p {
+    font-size: 0.82rem; color: var(--muted);
+    margin-bottom: 6px; line-height: 1.6;
+  }
+  .modal-steps p:last-child { margin-bottom: 0; }
+  .modal-steps strong { color: var(--text); }
+
+  .btn-whatsapp {
+    width: 100%;
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    border: none; color: white;
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem; letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 14px; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-whatsapp:hover {
+    box-shadow: 0 4px 20px rgba(37,211,102,0.3);
+    transform: translateY(-1px);
+  }
+
+  /* ── footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 24px;
+    text-align: center;
+  }
+  footer .f-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem; letter-spacing: 0.25em;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  footer p { font-size: 0.8rem; color: var(--muted); }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  /* ── responsive ── */
+  @media (max-width: 600px) {
+    header { padding: 16px 20px; }
+    nav { gap: 16px; }
+    nav a { font-size: 0.75rem; }
+    section { padding: 70px 16px; }
+    .modal { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <a class="logo" href="#">Subhajit Sarkar</a>
+  <nav>
+    <a href="#books">Books</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-ornament">✦ &nbsp; &nbsp; ✦ &nbsp; &nbsp; ✦</div>
+  <h1>Words that<br/><em>stay with you</em></h1>
+  <p class="hero-sub">Stories written from real emotions, for readers who feel deeply.</p>
+  <div class="hero-divider"><span>✦</span></div>
+  <a href="#books" class="btn-primary">Browse Books</a>
+  <div class="scroll-hint">Scroll</div>
+</section>
+
+<!-- Books -->
+<section id="books">
+  <p class="section-label">The Collection</p>
+  <h2 class="section-title">Available Books</h2>
+  <div class="section-rule"></div>
+
+  <div class="books-grid">
+
+    <!-- Book 1 — Published -->
+    <div class="book-card" onclick="openModal('book1')">
+      <div class="badge-new">New</div>
+      <div class="book-cover-placeholder">
+        <div class="ph-icon">🕊️</div>
+        <div class="ph-title">The Boy, The Bird,<br/>and The Sky</div>
+      </div>
+      <div class="book-info">
+        <span class="book-tag">Literary Fiction · Short Novel</span>
+        <div class="book-title">The Boy, The Bird, and The Sky</div>
+        <div class="book-author">by Subhajit Sarkar</div>
+        <p class="book-desc">A quiet story about love, freedom, and the courage to let go of what was never yours to keep.</p>
+        <div class="book-footer">
+          <div class="book-price">₹99 <span>/ PDF</span></div>
+          <button class="btn-buy">Buy Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Book 2 — Coming Soon -->
+    <div class="book-card" style="opacity:0.6; cursor:default;">
+      <div class="badge-soon">Coming Soon</div>
+      <div class="book-cover-placeholder">
+        <div class="ph-icon">📖</div>
+        <div class="ph-title">Untitled<br/>Book II</div>
+      </div>
+      <div class="book-info">
+        <span class="book-tag">Coming Soon</span>
+        <div class="book-title">Next Story</div>
+        <div class="book-author">by Subhajit Sarkar</div>
+        <p class="book-desc">The next story is being written. Something new is coming — stay close.</p>
+        <div class="book-footer">
+          <div class="book-price" style="color:var(--muted)">— &nbsp;<span>TBA</span></div>
+          <button class="btn-buy" style="opacity:0.4; cursor:not-allowed;" disabled>Soon</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Book 3 — Coming Soon -->
+    <div class="book-card" style="opacity:0.6; cursor:default;">
+      <div class="badge-soon">Coming Soon</div>
+      <div class="book-cover-placeholder">
+        <div class="ph-icon">🌙</div>
+        <div class="ph-title">Untitled<br/>Book III</div>
+      </div>
+      <div class="book-info">
+        <span class="book-tag">Coming Soon</span>
+        <div class="book-title">Future Title</div>
+        <div class="book-author">by Subhajit Sarkar</div>
+        <p class="book-desc">More stories are on the way. Each one written with heart and intention.</p>
+        <div class="book-footer">
+          <div class="book-price" style="color:var(--muted)">— &nbsp;<span>TBA</span></div>
+          <button class="btn-buy" style="opacity:0.4; cursor:not-allowed;" disabled>Soon</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" style="background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.03), transparent);">
+  <p class="section-label">The Author</p>
+  <h2 class="section-title">About Me</h2>
+  <div class="section-rule"></div>
+  <div class="about-inner">
+    <p>I am <em>Subhajit Sarkar</em> — a writer and developer from Assam, India. I write stories that come from real emotions, quiet moments, and the things people carry inside them without saying aloud.</p>
+    <p>My writing explores themes of love, freedom, loss, and the small moments that change everything. Every book I write is meant to stay with the reader — long after the last page.</p>
+    <p>This store is where my creative work lives. Thank you for being here.</p>
+    <div class="about-sig">— Subhajit Sarkar</div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+  <p class="section-label">Reach Out</p>
+  <h2 class="section-title">Contact</h2>
+  <div class="section-rule"></div>
+  <div class="about-inner">
+    <p>For queries, feedback, or bulk orders — reach out directly.</p>
+    <p style="margin-top:8px;">
+      <a href="https://wa.me/916026705234" style="color:var(--gold); text-decoration:none; font-style:italic;">
+        💬 WhatsApp Me
+      </a>
+      &nbsp;&nbsp;·&nbsp;&nbsp;
+      <a href="mailto:Subhajitsarkar0708@email.com" style="color:var(--gold); text-decoration:none; font-style:italic;">
+        ✉ Email Me
+      </a>
+    </p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="f-logo">Subhajit Sarkar</div>
+  <p>© 2025 Subhajit Sarkar. All rights reserved. &nbsp;·&nbsp; <a href="#">Privacy Policy</a></p>
+</footer>
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="modal" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <div class="modal-tag">Complete Your Purchase</div>
+    <div class="modal-title" id="modal-title">The Boy, The Bird,<br/>and The Sky</div>
+    <div class="modal-author" id="modal-author">by Subhajit Sarkar</div>
+
+    <div class="modal-price-row">
+      <div class="modal-price" id="modal-price">₹99</div>
+      <div class="modal-price-note">One-time · PDF Download</div>
+    </div>
+
+    <div class="modal-divider"></div>
+
+    <div class="qr-section">
+      <div class="qr-label">Scan & Pay via UPI</div>
+
+      <!-- QR Code (generated via QR API) -->
+      <div class="qr-box">
+        <img id="qr-img"
+          src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=upi://pay?pa=YOUR-UPI-ID@upi%26pn=Subhajit%20Sarkar%26am=99%26cu=INR%26tn=Book-Purchase"
+          width="156" height="156" alt="UPI QR Code"
+          style="display:block;"
+          onerror="this.style.display='none'; document.getElementById('qr-fallback').style.display='flex'"/>
+        <div id="qr-fallback" style="display:none; flex-direction:column; align-items:center; justify-content:center; width:156px; height:156px; background:#f5ede0;">
+          <span style="font-size:2rem;">📱</span>
+          <span style="font-size:0.65rem; color:#5C4A32; margin-top:6px; text-align:center;">Use UPI ID below</span>
+        </div>
+      </div>
+
+      <div class="upi-id" id="modal-upi">cyber.s.sarkar0708@ybl</div>
+      <div class="upi-note">Pay ₹99 · Mention your email in remarks</div>
+    </div>
+
+    <div class="modal-steps">
+      <p><strong>Step 1.</strong> Scan QR or copy UPI ID above</p>
+      <p><strong>Step 2.</strong> Pay ₹99 — add your email in remarks</p>
+      <p><strong>Step 3.</strong> Screenshot payment & click WhatsApp below</p>
+      <p><strong>Step 4.</strong> Receive your PDF within minutes ✦</p>
+    </div>
+
+    <button class="btn-whatsapp" onclick="openWhatsApp()">
+      📲 &nbsp; Send Payment Screenshot on WhatsApp
+    </button>
+  </div>
+</div>
+
+<script>
+  const books = {
+    book1: {
+      title: "The Boy, The Bird,<br/>and The Sky",
+      author: "by Subhajit Sarkar",
+      price: "₹99",
+      amount: "99"
+    }
+  };
+
+  // ── CONFIGURE THESE ──────────────────────────────────────────
+  const UPI_ID    = "cyber.s.sarkar0708@ybl";      //  UPI ID
+  const WHATSAPP  = "916026705234";          // ← Replace with your WhatsApp number
+  // ─────────────────────────────────────────────────────────────
+
+  function openModal(bookId) {
+    const b = books[bookId];
+    if (!b) return;
+    document.getElementById('modal-title').innerHTML  = b.title;
+    document.getElementById('modal-author').textContent = b.author;
+    document.getElementById('modal-price').textContent  = b.price;
+    document.getElementById('modal-upi').textContent    = UPI_ID;
+
+    const qrData = encodeURIComponent(
+      `upi://pay?pa=${UPI_ID}&pn=Subhajit+Sarkar&am=${b.amount}&cu=INR&tn=Book-Purchase`
+    );
+    document.getElementById('qr-img').src =
+      `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${qrData}`;
+
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeOnOverlay(e) {
+    if (e.target.id === 'modal') closeModal();
+  }
+
+  function openWhatsApp() {
+    const msg = encodeURIComponent(
+      "Hi! I just paid for a book on your store. Here's my payment screenshot. Please send me the PDF. 🙏"
+    );
+    window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
+</body>
+</html>
